@@ -1,0 +1,9 @@
+# system
+.DS_Store
+.vscode
+
+# project
+bin
+config.yml
+store
+
