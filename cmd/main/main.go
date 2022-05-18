@@ -5,6 +5,7 @@ import (
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/nikitapozdeev/feed-repost-bot/internal/app"
+	"github.com/nikitapozdeev/feed-repost-bot/internal/clients/vk"
 	"github.com/nikitapozdeev/feed-repost-bot/internal/config"
 	"github.com/nikitapozdeev/feed-repost-bot/internal/db"
 )
@@ -23,7 +24,15 @@ func main() {
 	}
   defer db.Close()
 
-	a, err := app.NewApp(&cfg, db)
+	// create clients vk, youtube, facebook instagram, etc.
+	vkClient := vk.NewClient(
+		cfg.VK.Host, 
+		cfg.VK.BasePath,
+		cfg.VK.Version, 
+		cfg.VK.Token,
+	)
+
+	a, err := app.NewApp(&cfg, db, vkClient)
 	if err != nil {
 		log.Fatal(err)
 	}
