@@ -15,19 +15,19 @@ const (
 )
 
 type Client struct {
-	host	string
+	host     string
 	basePath string
-	version string
-	token string
-	client http.Client
+	version  string
+	token    string
+	client   http.Client
 }
 
 func NewClient(host string, basePath, version string, token string) *Client {
 	return &Client{
-		host: host,
+		host:     host,
 		basePath: basePath,
-		version: version,
-		client: http.Client{},
+		version:  version,
+		client:   http.Client{},
 	}
 }
 
@@ -38,7 +38,7 @@ func (c *Client) Posts(domain string, offset int, count int) ([]Post, error) {
 	q.Add("count", strconv.Itoa(count))
 	q.Add("v", c.version)
 	q.Add("access_token", c.token)
-	
+
 	data, err := c.makeRequest(postsMethod, q)
 	if err != nil {
 		return nil, err
@@ -55,8 +55,8 @@ func (c *Client) Posts(domain string, offset int, count int) ([]Post, error) {
 func (c *Client) makeRequest(method string, query url.Values) ([]byte, error) {
 	u := url.URL{
 		Scheme: "https",
-		Host: c.host,
-		Path: path.Join(c.basePath, method),
+		Host:   c.host,
+		Path:   path.Join(c.basePath, method),
 	}
 
 	req, err := http.NewRequest(http.MethodGet, u.String(), nil)

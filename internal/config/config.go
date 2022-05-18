@@ -2,7 +2,7 @@ package config
 
 type Config struct {
 	Telegram Telegram `yaml:"telegram"`
-	VK VK `yaml:"vk"`
+	VK       VK       `yaml:"vk"`
 }
 
 type Telegram struct {
@@ -10,8 +10,8 @@ type Telegram struct {
 }
 
 type VK struct {
-	Host string `yaml:"host"`
+	Host     string `yaml:"host"`
 	BasePath string `yaml:"basePath"`
-	Version string `yaml:"version"`
-	Token string `yaml:"token"`
+	Version  string `yaml:"version"`
+	Token    string `yaml:"token"`
 }

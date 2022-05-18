@@ -24,8 +24,8 @@ var insertSQL = `
 `
 
 type DB struct {
-	sql *sql.DB
-	stmt *sql.Stmt
+	sql    *sql.DB
+	stmt   *sql.Stmt
 	buffer []model.Subscription
 }
 
@@ -45,8 +45,8 @@ func NewDB(dbFile string) (*DB, error) {
 	}
 
 	return &DB{
-		sql: sqlDB,
-		stmt: stmt,
+		sql:    sqlDB,
+		stmt:   stmt,
 		buffer: make([]model.Subscription, 0, 1024),
 	}, nil
 }

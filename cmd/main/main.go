@@ -17,18 +17,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-  db, err := db.NewDB("store")
+	db, err := db.NewDB("store")
 	if err != nil {
 		log.Fatal("[ERROR] creating db failed: ", err)
 		return
 	}
-  defer db.Close()
+	defer db.Close()
 
 	// create clients vk, youtube, facebook instagram, etc.
 	vkClient := vk.NewClient(
-		cfg.VK.Host, 
+		cfg.VK.Host,
 		cfg.VK.BasePath,
-		cfg.VK.Version, 
+		cfg.VK.Version,
 		cfg.VK.Token,
 	)
 
