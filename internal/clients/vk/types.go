@@ -1,5 +1,11 @@
 package vk
 
+import "encoding/json"
+
+type Response struct {
+	Response json.RawMessage `json:"response"`
+}
+
 type PostsResponse struct {
 	Count int    `json:"count"`
 	Posts []Post `json:"items"`

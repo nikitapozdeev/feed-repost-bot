@@ -45,12 +45,17 @@ func (c *Client) Posts(domain string, offset int, count int) ([]Post, error) {
 		return nil, err
 	}
 
-	var resp PostsResponse
-	if err := json.Unmarshal(data, &resp); err != nil {
+	var baseResponse Response
+	if err := json.Unmarshal(data, &baseResponse); err != nil {
 		return nil, err
 	}
 
-	return resp.Posts, nil
+	var postsResponse PostsResponse
+	if err := json.Unmarshal(baseResponse.Response, &postsResponse); err != nil {
+		return nil, err
+	}
+
+	return postsResponse.Posts, nil
 }
 
 func (c *Client) makeRequest(method string, query url.Values) ([]byte, error) {
