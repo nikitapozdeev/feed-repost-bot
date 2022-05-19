@@ -27,6 +27,7 @@ func NewClient(host string, basePath, version string, token string) *Client {
 		host:     host,
 		basePath: basePath,
 		version:  version,
+		token:    token,
 		client:   http.Client{},
 	}
 }
