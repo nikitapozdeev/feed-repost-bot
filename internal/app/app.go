@@ -4,24 +4,20 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"os"
-	"syscall"
 	"text/template"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/nikitapozdeev/feed-repost-bot/internal/clients/vk"
 	"github.com/nikitapozdeev/feed-repost-bot/internal/config"
-	"github.com/nikitapozdeev/feed-repost-bot/internal/db"
-	"github.com/nikitapozdeev/feed-repost-bot/internal/model"
-	"github.com/nikitapozdeev/feed-repost-bot/pkg/shutdown"
+	"github.com/nikitapozdeev/feed-repost-bot/internal/storage"
 	tele "gopkg.in/telebot.v3"
 )
 
 type app struct {
-	cfg *config.Config
-	db  *db.DB
-	vk  *vk.Client
+	cfg     *config.Config
+	storage storage.Storage
+	vk      *vk.Client
 }
 
 type App interface {
@@ -30,11 +26,11 @@ type App interface {
 
 var globalApp *app
 
-func NewApp(cfg *config.Config, db *db.DB, vk *vk.Client) (App, error) {
+func NewApp(cfg *config.Config, storage storage.Storage, vk *vk.Client) (App, error) {
 	return &app{
-		cfg: cfg,
-		db:  db,
-		vk:  vk,
+		cfg:     cfg,
+		storage: storage,
+		vk:      vk,
 	}, nil
 }
 
@@ -47,12 +43,12 @@ func PingHandler(c tele.Context) error {
 }
 
 func AddHandler(c tele.Context) error {
-	subscription := model.Subscription{
+	subscription := storage.Subscription{
 		ClientID: c.Sender().ID,
 		FeedLink: c.Args()[0],
 	}
 
-	if err := globalApp.db.Add(subscription); err != nil {
+	if err := globalApp.storage.Add(subscription); err != nil {
 		fmt.Println("[ERROR]: adding subscription failed: %w", err)
 		c.Send("fail")
 	}
@@ -126,9 +122,4 @@ func (a *app) Run() {
 	go func() {
 		bot.Start()
 	}()
-
-	shutdown.Graceful(
-		[]os.Signal{os.Interrupt, syscall.SIGTERM},
-		a.db,
-	)
 }

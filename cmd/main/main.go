@@ -3,12 +3,14 @@ package main
 import (
 	"fmt"
 	"os"
+	"syscall"
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/nikitapozdeev/feed-repost-bot/internal/app"
 	"github.com/nikitapozdeev/feed-repost-bot/internal/clients/vk"
 	"github.com/nikitapozdeev/feed-repost-bot/internal/config"
-	"github.com/nikitapozdeev/feed-repost-bot/internal/db"
+	"github.com/nikitapozdeev/feed-repost-bot/internal/storage/sqldb"
+	"github.com/nikitapozdeev/feed-repost-bot/pkg/shutdown"
 )
 
 func main() {
@@ -25,11 +27,10 @@ func run() error {
 		return fmt.Errorf("Failed to read configuration: %w", err)
 	}
 
-	db, err := db.NewDB("store")
+	storage, err := sqldb.NewDB("store")
 	if err != nil {
 		return fmt.Errorf("Failed to create database: %w", err)
 	}
-	defer db.Close()
 
 	// create clients vk, youtube, facebook instagram, etc.
 	vkClient := vk.NewClient(
@@ -39,11 +40,15 @@ func run() error {
 		cfg.VK.Token,
 	)
 
-	a, err := app.NewApp(&cfg, db, vkClient)
+	a, err := app.NewApp(&cfg, storage, vkClient)
 	if err != nil {
 		return fmt.Errorf("Failed to create app: %w", err)
 	}
 	a.Run()
 
+	shutdown.Graceful(
+		[]os.Signal{os.Interrupt, syscall.SIGTERM},
+		storage,
+	)
 	return nil
 }
