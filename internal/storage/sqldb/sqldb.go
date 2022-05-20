@@ -3,6 +3,8 @@ package sqldb
 import (
 	"database/sql"
 
+	_ "github.com/mattn/go-sqlite3"
+
 	"github.com/nikitapozdeev/feed-repost-bot/internal/storage"
 )
 
@@ -43,6 +45,7 @@ const (
 	`
 )
 
+// SqlDB implements Storage interface
 type SqlDB struct {
 	sql        *sql.DB
 	stmtInsert *sql.Stmt
@@ -50,7 +53,7 @@ type SqlDB struct {
 	stmtDelete *sql.Stmt
 }
 
-// creates new database
+// NewDB creates new database
 func NewDB(dbFile string) (*SqlDB, error) {
 	sqlDB, err := sql.Open("sqlite3", dbFile)
 	if err != nil {
@@ -84,7 +87,7 @@ func NewDB(dbFile string) (*SqlDB, error) {
 	}, nil
 }
 
-// gets all client subscriptions
+// Get gets all client subscriptions
 func (db *SqlDB) Get(clientId int64) ([]storage.Subscription, error) {
 	rows, err := db.sql.Query(selectSQL, clientId)
 	if err != nil {
@@ -117,7 +120,7 @@ func (db *SqlDB) Get(clientId int64) ([]storage.Subscription, error) {
 	return subscriptions, nil
 }
 
-// inserts new subscription
+// Add inserts new subscription
 func (db *SqlDB) Add(subscription storage.Subscription) error {
 	tx, err := db.sql.Begin()
 	if err != nil {
@@ -132,7 +135,7 @@ func (db *SqlDB) Add(subscription storage.Subscription) error {
 	return tx.Commit()
 }
 
-// updates subscription
+// Update updates subscription
 func (db *SqlDB) Update(subscription storage.Subscription) error {
 	tx, err := db.sql.Begin()
 	if err != nil {
@@ -154,7 +157,7 @@ func (db *SqlDB) Update(subscription storage.Subscription) error {
 	return tx.Commit()
 }
 
-// removes subscription
+// Delete removes subscription
 func (db *SqlDB) Delete(id int64) error {
 	tx, err := db.sql.Begin()
 	if err != nil {
@@ -170,7 +173,7 @@ func (db *SqlDB) Delete(id int64) error {
 	return tx.Commit()
 }
 
-// closes database
+// Close closes database
 func (db *SqlDB) Close() error {
 	defer func() {
 		db.stmtInsert.Close()
