@@ -1,7 +1,8 @@
 package main
 
 import (
-	"log"
+	"fmt"
+	"os"
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/nikitapozdeev/feed-repost-bot/internal/app"
@@ -11,16 +12,22 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Fprintf(os.Stdout, "%s\n", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	var cfg config.Config
 	err := cleanenv.ReadConfig("./config.yml", &cfg)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("Failed to read configuration: %w", err)
 	}
 
 	db, err := db.NewDB("store")
 	if err != nil {
-		log.Fatal("[ERROR] creating db failed: ", err)
-		return
+		return fmt.Errorf("Failed to create database: %w", err)
 	}
 	defer db.Close()
 
@@ -34,8 +41,9 @@ func main() {
 
 	a, err := app.NewApp(&cfg, db, vkClient)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("Failed to create app: %w", err)
 	}
-
 	a.Run()
+
+	return nil
 }
