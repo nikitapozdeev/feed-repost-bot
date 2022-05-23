@@ -8,8 +8,10 @@ import (
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/nikitapozdeev/feed-repost-bot/internal/app"
-	"github.com/nikitapozdeev/feed-repost-bot/internal/clients/vk"
 	"github.com/nikitapozdeev/feed-repost-bot/internal/config"
+	"github.com/nikitapozdeev/feed-repost-bot/internal/poller"
+	"github.com/nikitapozdeev/feed-repost-bot/internal/processor"
+	"github.com/nikitapozdeev/feed-repost-bot/internal/producer/vk"
 	"github.com/nikitapozdeev/feed-repost-bot/internal/storage/sqldb"
 	"github.com/nikitapozdeev/feed-repost-bot/pkg/shutdown"
 	tele "gopkg.in/telebot.v3"
@@ -35,14 +37,6 @@ func run() error {
 		return fmt.Errorf("Failed to create database: %w", err)
 	}
 
-	// create clients vk, youtube, facebook instagram, etc.
-	vkClient := vk.NewClient(
-		cfg.VK.Host,
-		cfg.VK.BasePath,
-		cfg.VK.Version,
-		cfg.VK.Token,
-	)
-
 	// create telebot
 	tbSettings := tele.Settings{
 		Token:  cfg.Telegram.Token,
@@ -50,8 +44,19 @@ func run() error {
 	}
 	bot, err := tele.NewBot(tbSettings)
 
+	processor := processor.NewMessageProcessor(bot)
+
+	// create clients vk, youtube, facebook instagram, etc.
+	vkClient := vk.NewClient(
+		cfg.VK.Host,
+		cfg.VK.BasePath,
+		cfg.VK.Version,
+		cfg.VK.Token,
+	)
+	poller := poller.NewPoller(60*time.Second, storage, vkClient, processor)
+
 	// create and run the app
-	a, err := app.NewApp(bot, storage, vkClient)
+	a, err := app.NewApp(bot, storage, poller)
 	if err != nil {
 		return fmt.Errorf("Failed to create app: %w", err)
 	}

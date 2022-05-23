@@ -3,7 +3,7 @@ package app
 import (
 	"fmt"
 
-	"github.com/nikitapozdeev/feed-repost-bot/internal/clients/vk"
+	"github.com/nikitapozdeev/feed-repost-bot/internal/poller"
 	"github.com/nikitapozdeev/feed-repost-bot/internal/storage"
 	tele "gopkg.in/telebot.v3"
 )
@@ -12,7 +12,7 @@ import (
 type app struct {
 	bot     *tele.Bot
 	storage storage.Storage
-	vk      *vk.Client
+	poller  *poller.Poller
 }
 
 type App interface {
@@ -20,11 +20,11 @@ type App interface {
 }
 
 // NewApp creates new application and setups handlers
-func NewApp(bot *tele.Bot, storage storage.Storage, vk *vk.Client) (App, error) {
+func NewApp(bot *tele.Bot, storage storage.Storage, poller *poller.Poller) (App, error) {
 	app := app{
 		bot:     bot,
 		storage: storage,
-		vk:      vk,
+		poller:  poller,
 	}
 	app.handlers()
 	return &app, nil
@@ -34,6 +34,9 @@ func NewApp(bot *tele.Bot, storage storage.Storage, vk *vk.Client) (App, error) 
 func (a *app) Run() {
 	go func() {
 		a.bot.Start()
+	}()
+	go func() {
+		a.poller.Start()
 	}()
 	fmt.Println("Listening for clients...")
 }

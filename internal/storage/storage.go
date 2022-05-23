@@ -2,6 +2,7 @@ package storage
 
 type Storage interface {
 	Get(clientId int64) ([]Subscription, error)
+	GetAllActive() ([]Subscription, error)
 	Add(s Subscription) error
 	Update(s Subscription) error
 	Delete(id int64) error
@@ -13,5 +14,6 @@ type Subscription struct {
 	ID       int64
 	ClientID int64
 	FeedLink string
-	Updated  int64
+	Updated  *int64
+	IsActive bool
 }

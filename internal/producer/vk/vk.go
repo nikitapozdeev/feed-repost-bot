@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"path"
 	"strconv"
+
+	"github.com/nikitapozdeev/feed-repost-bot/internal/producer"
 )
 
 const (
@@ -32,7 +34,7 @@ func NewClient(host string, basePath, version string, token string) *Client {
 	}
 }
 
-func (c *Client) Posts(domain string, offset int, count int) ([]Post, error) {
+func (c *Client) Posts(domain string, offset int, count int) ([]producer.Message, error) {
 	q := url.Values{}
 	q.Add("domain", domain)
 	q.Add("offset", strconv.Itoa(offset))
@@ -55,7 +57,12 @@ func (c *Client) Posts(domain string, offset int, count int) ([]Post, error) {
 		return nil, err
 	}
 
-	return postsResponse.Posts, nil
+	var messages []producer.Message
+	for _, post := range postsResponse.Posts {
+		messages = append(messages, &post)
+	}
+
+	return messages, nil
 }
 
 func (c *Client) makeRequest(method string, query url.Values) ([]byte, error) {

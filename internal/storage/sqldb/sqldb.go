@@ -14,13 +14,20 @@ const (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			clientId NUMBER,
 			feedLink VARCHAR(200),
-			updated NUMBER
+			updated NUMBER,
+			isActive BOOLEAN DEFAULT FALSE
 		);
 	`
 	selectSQL = `
 		SELECT * 
 			FROM subscriptions 
 		 WHERE clientId = ?
+	`
+
+	selectAllActiveSQL = `
+		SELECT *
+		  FROM subscriptions
+		 WHERE isActive = true
 	`
 
 	insertSQL = `
@@ -35,7 +42,8 @@ const (
 		UPDATE subscriptions
 			 SET clientId = ?,
 			 		 feedLink = ?,
-			 		 updated = ?
+			 		 updated = ?,
+					 isActive = ?
 		 WHERE id = ?
 	`
 
@@ -104,7 +112,40 @@ func (db *SqlDB) Get(clientId int64) ([]storage.Subscription, error) {
 
 	for rows.Next() {
 		subscription := storage.Subscription{}
-		err := rows.Scan(&subscription)
+		err := rows.Scan(&subscription.ID, &subscription.ClientID, &subscription.FeedLink, &subscription.Updated, &subscription.IsActive)
+		if err != nil {
+			return nil, err
+		}
+
+		subscriptions = append(subscriptions, subscription)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return subscriptions, nil
+}
+
+// GetAllActive gets all active subscriptions for all clients
+func (db *SqlDB) GetAllActive() ([]storage.Subscription, error) {
+	rows, err := db.sql.Query(selectAllActiveSQL)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	subscriptions := make([]storage.Subscription, 0)
+
+	for rows.Next() {
+		subscription := storage.Subscription{}
+		err := rows.Scan(&subscription.ID, &subscription.ClientID, &subscription.FeedLink, &subscription.Updated, &subscription.IsActive)
 		if err != nil {
 			return nil, err
 		}
@@ -146,6 +187,7 @@ func (db *SqlDB) Update(subscription storage.Subscription) error {
 		subscription.ClientID,
 		subscription.FeedLink,
 		subscription.Updated,
+		subscription.IsActive,
 		subscription.ID,
 	)
 
